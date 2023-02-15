@@ -17,7 +17,7 @@ import com.oretania.portal.models.Asignatura;
 import com.oretania.portal.repositories.AlumnoRepository;
 
 @Service
-public class AlumnoService {
+public class AlumnoService implements UserDetailsService {
     
 
     @Autowired
@@ -27,4 +27,28 @@ public class AlumnoService {
         return null;
     }
 
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+
+        Alumno alumno = repository.findByUserName(username);
+
+        List<GrantedAuthority> roles = new ArrayList<GrantedAuthority>();
+
+        List<Asignatura> asignaturas = alumno.getAsignaturas();
+
+        for (Asignatura a : asignaturas) {
+            roles.add(new SimpleGrantedAuthority(a.getCodigo()));
+        }
+
+        // UserDetails userDetails = new User(user.getName(), user.getPassword(),
+        // roles);
+        UserDetails userDetails = User.builder()
+                .username(alumno.getUserName())
+                .password(alumno.getPassword())
+                .authorities(roles)
+                .build();
+        return userDetails;
+    }
 }
